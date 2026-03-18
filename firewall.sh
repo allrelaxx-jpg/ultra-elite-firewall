@@ -72,7 +72,7 @@ cat << EOF
   # ===== VPN =====
   tcp dport $REALITY_PORT accept
   udp dport $WG_PORT limit rate 300/second burst 600 packets accept
-  udp dport 3001-3010 limit rate 500/second burst 1000 packets accept
+  udp dport 32690-32700 limit rate 500/second burst 1000 packets accept
 
   # ===== CYBER AI CORE =====
   tcp dport 4000 accept
