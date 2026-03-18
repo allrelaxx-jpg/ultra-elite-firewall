@@ -1,4 +1,4 @@
-# ULTRA ELITE FIREWALL v10.6.3 FINAL
+# ULTRA ELITE FIREWALL v10.6.4 FINAL
 
 ## Install
 
@@ -7,22 +7,21 @@ curl -sL "https://raw.githubusercontent.com/allrelaxx-jpg/ultra-elite-firewall/m
 ## Features
 
 - nftables firewall
+- NAT for VPN (WireGuard / Amnezia)
 - Cloudflare protection
-- VPN support
 - GeoIP filtering
 - Brute-force protection
-- UDP flood protection
 
 ## Ports
 
-- 80/443 → Cloudflare only
+- 80/443 → Cloudflare
 - 22 → Geo
 - 8443 → Reality
 - 51820 → WireGuard
-- 3001–3010 → AmneziaVPN
+- 32690–32700 → AmneziaVPN
 - 3000 → Dashboard (VPN only)
 - 4000 → CYBER AI CORE
 
 ## Status
 
-Production Ready
+VPN SAFE / PRODUCTION READY
