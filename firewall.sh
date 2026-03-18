@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "ULTRA ELITE FIREWALL CORE v10.6 PRO"
+echo "ULTRA ELITE FIREWALL v10.6 PRO CF SAFE"
 
 ### CONFIG
 SSH_PORT=22
@@ -16,13 +16,12 @@ apt update -y >/dev/null 2>&1
 apt install -y nftables curl jq iptables fail2ban ca-certificates >/dev/null 2>&1
 
 update-alternatives --set iptables /usr/sbin/iptables-nft || true
-update-alternatives --set ip6tables /usr/sbin/ip6tables-nft || true
 
 ### CROWDSEC
 curl -s https://install.crowdsec.net | bash >/dev/null 2>&1
 apt install -y crowdsec crowdsec-firewall-bouncer-nftables >/dev/null 2>&1
 
-systemctl enable crowdsec >/dev/null 2>&1
+systemctl enable crowdsec
 systemctl restart crowdsec
 
 ### GEOIP
@@ -35,21 +34,27 @@ done
 
 cat /etc/nftables/geoip/*.zone > /etc/nftables/geoip/allowed.txt
 
-### BUILD NFTABLES CONFIG
-echo "Building nftables config..."
+### CLOUDFLARE
+curl -s https://www.cloudflare.com/ips-v4 > /etc/nftables/cloudflare.txt
 
+### BUILD CONFIG
 {
 echo "flush ruleset"
-echo ""
 echo "table inet filter {"
 
 echo " set allowed_geo {"
 echo "  type ipv4_addr"
 echo "  flags interval"
 echo "  elements = {"
-
 awk '{print $1}' /etc/nftables/geoip/allowed.txt | sed '$!s/$/,/' | sed 's/^/   /'
+echo "  }"
+echo " }"
 
+echo " set cloudflare {"
+echo "  type ipv4_addr"
+echo "  flags interval"
+echo "  elements = {"
+awk '{print $1}' /etc/nftables/cloudflare.txt | sed '$!s/$/,/' | sed 's/^/   /'
 echo "  }"
 echo " }"
 
@@ -62,60 +67,56 @@ cat << EOF
   ct state established,related accept
   iif lo accept
 
-  ip protocol icmp limit rate 10/second accept
+  ip protocol icmp accept
 
   # anti scan
   tcp flags & (fin|syn|rst|psh|ack|urg) == 0 drop
 
-  # SYN protection
+  # SYN protect
   tcp flags syn limit rate 25/second burst 50 packets accept
 
-  # ===== BRUTE-FORCE PROTECTION (SSH) =====
+  # ===== CLOUDFLARE =====
+  tcp dport {80,443} ip saddr @cloudflare accept
+
+  # ===== VPN =====
+
+  # Reality
+  tcp dport $REALITY_PORT accept
+
+  # WireGuard
+  udp dport $WG_PORT limit rate 300/second burst 600 packets accept
+
+  # AmneziaVPN
+  udp dport 31100-31110 limit rate 500/second burst 1000 packets accept
+
+  # ===== BRUTE PROTECT SSH =====
   tcp dport $SSH_PORT ct state new limit rate 5/minute burst 10 packets accept
 
-  # ===== GLOBAL CONNECTION LIMIT PER IP =====
+  # ===== GLOBAL LIMIT =====
   tcp ct state new limit rate 30/second burst 50 packets accept
 
-  # ===== UDP FLOOD PROTECTION =====
-  udp dport $WG_PORT limit rate 200/second burst 400 packets accept
-  udp dport $REALITY_PORT limit rate 200/second burst 400 packets accept
-
-  # VPN OPEN
-  tcp dport $REALITY_PORT accept
-  udp dport $WG_PORT accept
-
-  # SSH GEO
+  # ===== SSH GEO =====
   tcp dport $SSH_PORT ip saddr @allowed_geo accept
 
-  # PANELS GEO
+  # ===== PANELS GEO =====
   tcp dport { $FASTPANEL_PORT, $PANEL_PORTS } ip saddr @allowed_geo accept
 
   drop
  }
 
- chain forward {
-  type filter hook forward priority 0;
-  policy accept;
- }
-
- chain output {
-  type filter hook output priority 0;
-  policy accept;
- }
+ chain forward { type filter hook forward priority 0; policy accept; }
+ chain output { type filter hook output priority 0; policy accept; }
 }
 EOF
 
 } > /etc/nftables.conf
 
 ### VALIDATE
-echo "Validating config..."
-
 if nft -c -f /etc/nftables.conf; then
-  echo "Config OK → applying"
-  systemctl enable nftables >/dev/null 2>&1
+  systemctl enable nftables
   systemctl restart nftables
 else
-  echo "ERROR: nftables config invalid"
+  echo "NFT ERROR"
   exit 1
 fi
 
@@ -131,7 +132,7 @@ enabled = true
 port = $SSH_PORT
 EOF
 
-systemctl enable fail2ban >/dev/null 2>&1
+systemctl enable fail2ban
 systemctl restart fail2ban
 
-echo "FIREWALL v10.6 PRO ACTIVE"
+echo "FIREWALL v10.6 PRO CF SAFE ACTIVE"
