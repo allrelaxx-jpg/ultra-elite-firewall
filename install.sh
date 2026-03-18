@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 set -e
 
-echo "ULTRA ELITE FIREWALL INSTALLER v10.5.1"
+echo "ULTRA ELITE FIREWALL INSTALLER v10.6 PRO"
 
 INSTALL_DIR="/opt/ultra-firewall"
 
 mkdir -p $INSTALL_DIR
 cd $INSTALL_DIR
 
-echo "[1] Download latest core"
+echo "[1] Download latest core (no cache)"
 
-curl -sL https://raw.githubusercontent.com/allrelaxx-jpg/ultra-elite-firewall/main/firewall.sh -o firewall.sh
-curl -sL https://raw.githubusercontent.com/allrelaxx-jpg/ultra-elite-firewall/main/geo-update.sh -o geo-update.sh
+curl -sL "https://raw.githubusercontent.com/allrelaxx-jpg/ultra-elite-firewall/main/firewall.sh?nocache=$(date +%s)" -o firewall.sh
+curl -sL "https://raw.githubusercontent.com/allrelaxx-jpg/ultra-elite-firewall/main/geo-update.sh?nocache=$(date +%s)" -o geo-update.sh
 
 chmod +x *.sh
 
