@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "ULTRA ELITE FIREWALL v10.6.4 FINAL (VPN SAFE)"
+echo "ULTRA ELITE FIREWALL v10.6.5 FINAL (VPN SAFE)"
 
 SSH_PORT=22
 REALITY_PORT=8443
@@ -77,18 +77,20 @@ cat << EOF
   tcp flags & (fin|syn|rst|psh|ack|urg) == 0 drop
   tcp flags syn limit rate 25/second burst 50 packets accept
 
-  # Web only via Cloudflare
+  # Web via Cloudflare only
   tcp dport {80,443} ip saddr @cloudflare accept
 
   # VPN
   tcp dport $REALITY_PORT accept
   udp dport $WG_PORT accept
+
+  # AmneziaVPN (NEW RANGE)
   udp dport 32690-32700 accept
 
   # CYBER AI CORE
   tcp dport 4000 accept
 
-  # Dashboard via VPN
+  # Dashboard (VPN only)
   tcp dport 3000 ip saddr 10.0.0.0/24 accept
 
   # SSH GEO + brute protect
@@ -115,7 +117,7 @@ cat << EOF
 EOF
 
 ########################
-# NAT TABLE (VPN FIX)
+# NAT TABLE
 ########################
 cat << EOF
 
@@ -155,4 +157,4 @@ EOF
 systemctl enable fail2ban >/dev/null 2>&1
 systemctl restart fail2ban
 
-echo "FIREWALL v10.6.4 FINAL ACTIVE"
+echo "FIREWALL v10.6.5 FINAL ACTIVE"
