@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "ULTRA ELITE FIREWALL v10.6.1 FINAL"
+echo "ULTRA ELITE FIREWALL v10.6.2 FINAL"
 
 ### CONFIG
 SSH_PORT=22
@@ -87,8 +87,11 @@ cat << EOF
   # WireGuard
   udp dport $WG_PORT limit rate 300/second burst 600 packets accept
 
-  # AmneziaVPN
-  udp dport 31100-31110 limit rate 500/second burst 1000 packets accept
+  # AmneziaVPN (НОВЫЙ диапазон)
+  udp dport 3001-3010 limit rate 500/second burst 1000 packets accept
+
+  # ===== DASHBOARD =====
+  tcp dport 3000 ip saddr @allowed_geo accept
 
   # ===== SSH GEO + BRUTE LIMIT =====
   ct state new tcp dport $SSH_PORT ip saddr @allowed_geo limit rate 5/minute burst 10 packets accept
@@ -96,10 +99,9 @@ cat << EOF
   # ===== PANELS GEO =====
   tcp dport { $FASTPANEL_PORT, $PANEL_PORTS } ip saddr @allowed_geo accept
 
-  # ===== ОБЩИЙ LIMIT (осторожный) =====
+  # ===== ОБЩИЙ LIMIT =====
   ct state new limit rate 50/second burst 100 packets accept
 
-  # финальный drop
   drop
  }
 
@@ -144,4 +146,4 @@ EOF
 systemctl enable fail2ban >/dev/null 2>&1
 systemctl restart fail2ban
 
-echo "FIREWALL v10.6.1 FINAL ACTIVE"
+echo "FIREWALL v10.6.2 FINAL ACTIVE"
