@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "ULTRA ELITE FIREWALL CORE v10.5.1"
+echo "ULTRA ELITE FIREWALL CORE v10.6 PRO"
 
 ### CONFIG
 SSH_PORT=22
@@ -35,7 +35,7 @@ done
 
 cat /etc/nftables/geoip/*.zone > /etc/nftables/geoip/allowed.txt
 
-### BUILD NFTABLES CONFIG (SAFE)
+### BUILD NFTABLES CONFIG
 echo "Building nftables config..."
 
 {
@@ -48,7 +48,6 @@ echo "  type ipv4_addr"
 echo "  flags interval"
 echo "  elements = {"
 
-# FIX: без лишней запятой
 awk '{print $1}' /etc/nftables/geoip/allowed.txt | sed '$!s/$/,/' | sed 's/^/   /'
 
 echo "  }"
@@ -68,8 +67,18 @@ cat << EOF
   # anti scan
   tcp flags & (fin|syn|rst|psh|ack|urg) == 0 drop
 
-  # SYN protection (FIXED)
+  # SYN protection
   tcp flags syn limit rate 25/second burst 50 packets accept
+
+  # ===== BRUTE-FORCE PROTECTION (SSH) =====
+  tcp dport $SSH_PORT ct state new limit rate 5/minute burst 10 packets accept
+
+  # ===== GLOBAL CONNECTION LIMIT PER IP =====
+  tcp ct state new limit rate 30/second burst 50 packets accept
+
+  # ===== UDP FLOOD PROTECTION =====
+  udp dport $WG_PORT limit rate 200/second burst 400 packets accept
+  udp dport $REALITY_PORT limit rate 200/second burst 400 packets accept
 
   # VPN OPEN
   tcp dport $REALITY_PORT accept
@@ -125,4 +134,4 @@ EOF
 systemctl enable fail2ban >/dev/null 2>&1
 systemctl restart fail2ban
 
-echo "FIREWALL v10.5.1 ACTIVE"
+echo "FIREWALL v10.6 PRO ACTIVE"
