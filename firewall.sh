@@ -35,8 +35,8 @@ done
 
 cat /etc/nftables/geoip/*.zone > /etc/nftables/geoip/allowed.txt
 
-### NFTABLES CONFIG (SAFE BUILD)
-echo "Generating nftables config..."
+### BUILD NFTABLES CONFIG (SAFE)
+echo "Building nftables config..."
 
 {
 echo "flush ruleset"
@@ -48,7 +48,7 @@ echo "  type ipv4_addr"
 echo "  flags interval"
 echo "  elements = {"
 
-# безопасная генерация без лишней запятой
+# FIX: без лишней запятой
 awk '{print $1}' /etc/nftables/geoip/allowed.txt | sed '$!s/$/,/' | sed 's/^/   /'
 
 echo "  }"
@@ -98,15 +98,15 @@ EOF
 
 } > /etc/nftables.conf
 
-### VALIDATE BEFORE APPLY (ВАЖНО)
-echo "Validating nftables config..."
+### VALIDATE
+echo "Validating config..."
 
 if nft -c -f /etc/nftables.conf; then
-  echo "Config valid, applying..."
+  echo "Config OK → applying"
   systemctl enable nftables >/dev/null 2>&1
   systemctl restart nftables
 else
-  echo "ERROR: nftables config invalid!"
+  echo "ERROR: nftables config invalid"
   exit 1
 fi
 
