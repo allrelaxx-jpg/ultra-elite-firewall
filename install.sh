@@ -15,7 +15,7 @@ curl -sL https://raw.githubusercontent.com/allrelaxx-jpg/ultra-elite-firewall/ma
 
 chmod +x *.sh
 
-echo "[2] Run firewall core"
+echo "[2] Run firewall"
 bash firewall.sh
 
 echo "[3] Setup GeoIP auto-update"
