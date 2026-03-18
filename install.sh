@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-echo "ULTRA ELITE FIREWALL INSTALLER v10.6.1 FINAL"
+echo "ULTRA ELITE FIREWALL INSTALLER v10.6.2 FINAL"
 
 INSTALL_DIR="/opt/ultra-firewall"
 
@@ -38,5 +38,5 @@ systemctl is-active fail2ban >/dev/null && echo "fail2ban OK" || echo "fail2ban 
 
 echo ""
 echo "INSTALL COMPLETE"
-echo "Firewall version: v10.6.1 FINAL"
+echo "Firewall version: v10.6.2 FINAL"
 echo "Location: $INSTALL_DIR"
