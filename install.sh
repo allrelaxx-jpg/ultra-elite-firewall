@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-echo "ULTRA ELITE FIREWALL INSTALLER v10.6.4 FINAL"
+echo "ULTRA ELITE FIREWALL INSTALLER v10.6.5 FINAL VPN SAFE"
 
 INSTALL_DIR="/opt/ultra-firewall"
 
