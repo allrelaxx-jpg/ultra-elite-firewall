@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-echo "🚀 ULTRA ELITE FIREWALL INSTALLER"
+echo "ULTRA ELITE FIREWALL INSTALLER"
 
 INSTALL_DIR="/opt/ultra-firewall"
 
