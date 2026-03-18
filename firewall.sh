@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "ULTRA ELITE FIREWALL v10.6 PRO CF SAFE"
+echo "ULTRA ELITE FIREWALL v10.6.1 FINAL"
 
 ### CONFIG
 SSH_PORT=22
@@ -64,18 +64,19 @@ cat << EOF
   type filter hook input priority 0;
   policy drop;
 
+  # базовые
   ct state established,related accept
   iif lo accept
 
   ip protocol icmp accept
 
-  # anti scan
+  # анти-скан
   tcp flags & (fin|syn|rst|psh|ack|urg) == 0 drop
 
-  # SYN protect
+  # SYN защита
   tcp flags syn limit rate 25/second burst 50 packets accept
 
-  # ===== CLOUDFLARE =====
+  # ===== CLOUDFLARE (сайт) =====
   tcp dport {80,443} ip saddr @cloudflare accept
 
   # ===== VPN =====
@@ -89,34 +90,42 @@ cat << EOF
   # AmneziaVPN
   udp dport 31100-31110 limit rate 500/second burst 1000 packets accept
 
-  # ===== BRUTE PROTECT SSH =====
-  tcp dport $SSH_PORT ct state new limit rate 5/minute burst 10 packets accept
-
-  # ===== GLOBAL LIMIT =====
-  tcp ct state new limit rate 30/second burst 50 packets accept
-
-  # ===== SSH GEO =====
-  tcp dport $SSH_PORT ip saddr @allowed_geo accept
+  # ===== SSH GEO + BRUTE LIMIT =====
+  ct state new tcp dport $SSH_PORT ip saddr @allowed_geo limit rate 5/minute burst 10 packets accept
 
   # ===== PANELS GEO =====
   tcp dport { $FASTPANEL_PORT, $PANEL_PORTS } ip saddr @allowed_geo accept
 
+  # ===== ОБЩИЙ LIMIT (осторожный) =====
+  ct state new limit rate 50/second burst 100 packets accept
+
+  # финальный drop
   drop
  }
 
- chain forward { type filter hook forward priority 0; policy accept; }
- chain output { type filter hook output priority 0; policy accept; }
+ chain forward {
+  type filter hook forward priority 0;
+  policy accept;
+ }
+
+ chain output {
+  type filter hook output priority 0;
+  policy accept;
+ }
 }
 EOF
 
 } > /etc/nftables.conf
 
 ### VALIDATE
+echo "Validating nftables..."
+
 if nft -c -f /etc/nftables.conf; then
-  systemctl enable nftables
+  echo "Config OK → applying"
+  systemctl enable nftables >/dev/null 2>&1
   systemctl restart nftables
 else
-  echo "NFT ERROR"
+  echo "NFT CONFIG ERROR"
   exit 1
 fi
 
@@ -132,7 +141,7 @@ enabled = true
 port = $SSH_PORT
 EOF
 
-systemctl enable fail2ban
+systemctl enable fail2ban >/dev/null 2>&1
 systemctl restart fail2ban
 
-echo "FIREWALL v10.6 PRO CF SAFE ACTIVE"
+echo "FIREWALL v10.6.1 FINAL ACTIVE"
